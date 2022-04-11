@@ -118,11 +118,35 @@ function complexity(filePath)
 		if (node.type === 'FunctionDeclaration') 
 		{
 			var builder = new FunctionBuilder();
-
+			builder.ParameterCount = node.params.length;
 			builder.FunctionName = functionName(node);
 			builder.StartLine    = node.loc.start.line;
 
 			builders[builder.FunctionName] = builder;
+			let maximum = 0;
+			traverseWithParents(node, function (node){
+				if (isDecision(node)){
+					builder.SimpleCyclomaticComplexity +=1;
+					let temp1, temp2 = 0;
+					traverseWithParents(node, function(node){
+						if (isDecision(node)){
+							temp2=temp1;
+							temp1=0;
+						}
+						if (node.type === "LogicalExpression"){
+							temp1 +=1;
+						}
+					});
+					if (temp1 > temp2){
+						maximum = temp1;
+					}
+					else{
+						maximum=temp2;
+					}
+					builder.MaxConditions = maximum;
+					builder.SimpleCyclomaticComplexity +=1;
+				}
+			})
 		}
 
 	});
